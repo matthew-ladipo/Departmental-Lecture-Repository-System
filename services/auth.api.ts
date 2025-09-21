@@ -4,7 +4,7 @@ import axios from "axios";
 import { AxiosInstance } from "axios";
 import API from "@/lib/axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dlrs-be.vercel.app/api"
 
 
 export interface RegisterPayload {
