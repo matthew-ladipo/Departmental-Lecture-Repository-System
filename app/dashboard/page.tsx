@@ -113,9 +113,7 @@ export default function DashboardPage() {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            <Link href="/profile" variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Link>
+            
             <Avatar>
               <AvatarImage src="/placeholder-user.jpg" />
               <AvatarFallback>JD</AvatarFallback>
