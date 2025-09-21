@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,9 +12,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, User, GraduationCap } from "lucide-react"
 import Link from "next/link"
+import { registerUser, type RegisterPayload } from "@/services/auth.api"
+
+type Role = "student" | "lecturer"
+
+interface FormData {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  confirmPassword: string
+  role: Role
+  department: string
+  studentId?: string
+  lecturerId?: string
+  specialization?: string
+}
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -22,9 +39,11 @@ export default function SignupPage() {
     role: "student",
     department: "",
     studentId: "",
-    employeeId: "",
+    lecturerId: "",
     specialization: "",
   })
+
+  const [loading, setLoading] = useState(false)
 
   const departments = [
     "Computer Science",
@@ -39,10 +58,39 @@ export default function SignupPage() {
     "History",
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle signup logic here
-    console.log("Signup data:", formData)
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const payload: RegisterPayload = {
+        fullName: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        department: formData.department,
+        ...(formData.role === "student" && { studentId: formData.studentId }),
+        ...(formData.role === "lecturer" && {
+          lecturerId: formData.lecturerId,
+          specialization: formData.specialization,
+        }),
+      }
+
+      const res = await registerUser(payload)
+      console.log("✅ Registered:", res)
+      alert("Account created successfully! Please verify your email.")
+    } catch (err: any) {
+      console.error("❌ Registration failed:", err.response?.data || err.message)
+      alert(err.response?.data?.message || "Something went wrong")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -64,7 +112,7 @@ export default function SignupPage() {
             <CardDescription>Choose your role and fill in your details</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+            <Tabs value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value as Role })}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="student" className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4" />
@@ -129,6 +177,7 @@ export default function SignupPage() {
                   </Select>
                 </div>
 
+                {/* Student-specific fields */}
                 <TabsContent value="student" className="space-y-4 mt-0">
                   <div className="space-y-2">
                     <Label htmlFor="studentId">Student ID</Label>
@@ -142,14 +191,15 @@ export default function SignupPage() {
                   </div>
                 </TabsContent>
 
+                {/* Lecturer-specific fields */}
                 <TabsContent value="lecturer" className="space-y-4 mt-0">
                   <div className="space-y-2">
-                    <Label htmlFor="employeeId">Employee ID</Label>
+                    <Label htmlFor="lecturerId">Lecturer ID</Label>
                     <Input
-                      id="employeeId"
-                      value={formData.employeeId}
-                      onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                      placeholder="e.g., EMP2024001"
+                      id="lecturerId"
+                      value={formData.lecturerId}
+                      onChange={(e) => setFormData({ ...formData, lecturerId: e.target.value })}
+                      placeholder="e.g., LEC2024001"
                       required={formData.role === "lecturer"}
                     />
                   </div>
@@ -160,6 +210,7 @@ export default function SignupPage() {
                       value={formData.specialization}
                       onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
                       placeholder="e.g., Machine Learning, Organic Chemistry"
+                      required={formData.role === "lecturer"}
                     />
                   </div>
                 </TabsContent>
@@ -186,8 +237,8 @@ export default function SignupPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Create Account
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
             </Tabs>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,10 +23,27 @@ import {
   Calendar,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { logoutUser } from "@/services/auth.api"
+import { useAuth } from "@/context/AuthContext"
+
+
 
 export default function DashboardPage() {
+  const { logout, user, loading, token } = useAuth()
+
   const [userRole] = useState<"student" | "lecturer">("student") // This would come from auth context
   const [searchQuery, setSearchQuery] = useState("")
+    const router = useRouter()
+
+
+   useEffect(() => {
+    if (!loading && !token) {
+      router.push("/auth/login")
+    }
+  }, [loading, token, router])
+
+  if (loading) return <p>Loading...</p>
 
   const recentMaterials = [
     {
@@ -96,14 +113,14 @@ export default function DashboardPage() {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Link href="/profile" variant="ghost" size="icon">
               <Settings className="h-5 w-5" />
-            </Button>
+            </Link>
             <Avatar>
               <AvatarImage src="/placeholder-user.jpg" />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={logout}>
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
