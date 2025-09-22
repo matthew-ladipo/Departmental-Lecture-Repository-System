@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://dlrs-be.vercel.app/api", 
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://dlrs-be.onrender.com/api", 
   headers: { "Content-Type": "application/json" },
   withCredentials: true, // only if using cookies (sessions/JWT in httpOnly)
 });
